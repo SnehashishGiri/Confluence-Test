@@ -1,4 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using ConfluenceRecruitmentTest.Data;
+using ConfluenceRecruitmentTest.Data.Entities;
+using ConfluenceRecruitmentTest.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -11,17 +16,42 @@ namespace ConfluenceRecruitmentTest.Controllers
     [Route("api/portfolio")]
     public class PortfolioController : ControllerBase
     {
+        private readonly IStockRepository _repository;
+        private readonly IMapper _mapper;
         private readonly ILogger<PortfolioController> _logger;
 
-        public PortfolioController(ILogger<PortfolioController> logger)
+        public PortfolioController(IStockRepository repository, IMapper mapper, ILogger<PortfolioController> logger)
         {
-            _logger = logger;
+            _repository = repository;
+            _mapper = mapper;
+            _logger = logger; ;
         }
 
-        [HttpGet]
-        public IActionResult Test()
+        [HttpPost]
+        public async Task<ActionResult<PortfolioModel>> Post(StockModel model)
         {
-            return Ok("Hello World");
+            try
+            {
+                PortfolioModel portfolioModel = new PortfolioModel();
+                // Create a new Stock
+                var stock = _mapper.Map<Stock>(model);
+                _repository.Add(stock);
+                if (await _repository.SaveChangesAsync())
+                {
+                    var totalValue = await _repository.GetPortfolioCountAsync();
+                    portfolioModel.TotalValue = totalValue;
+
+                    return Created($"/api/portfolio", portfolioModel);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error in processing Stocks : {ex} ");
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+
+            return BadRequest();
         }
     }
 }
