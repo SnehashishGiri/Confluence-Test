@@ -40,6 +40,7 @@ namespace ConfluenceRecruitmentTest.Data
         public async Task<double> GetPortfolioCountAsync()
         {
             _logger.LogInformation($"Getting all Stocks from db and fetching Portfolio count");
+            //var query = _context.Stocks.ToAsyncEnumerable().Sum(row => row.Price * row.Quantity);
             var query = _context.Stocks.ToList().Sum(row => row.Price * row.Quantity);
             return query;
         }

@@ -41,7 +41,7 @@ namespace ConfluenceRecruitmentTest.Controllers
                     var totalValue = await _repository.GetPortfolioCountAsync();
                     portfolioModel.TotalValue = totalValue;
 
-                    return Created($"/api/portfolio", portfolioModel);
+                    return Ok(portfolioModel);
                 }
 
             }
